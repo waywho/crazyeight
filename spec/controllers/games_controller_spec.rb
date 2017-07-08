@@ -22,4 +22,15 @@ RSpec.describe GamesController, type: :controller do
 		# end
 	end
 
+	describe "game#create action" do
+		it "should successfully create and save a new game by the sign-in user" do
+			user = FactoryGirl.create(:user)
+			auth_headers = user.create_new_auth_token
+			request.headers.merge!(auth_headers)
+			post :create, params: { game: { name: 'First'}}
+			game = Game.last
+			expect(game.name).to eq('First')
+			expect(game.user_id).to eq(user.id)
+		end
+	end
 end

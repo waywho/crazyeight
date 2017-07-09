@@ -1,36 +1,82 @@
 require 'rails_helper'
 
 RSpec.describe GamesController, type: :controller do
-	before do
-		user = FactoryGirl.create(:user)
-		auth_headers = user.create_new_auth_token
-		request.headers.merge!(auth_headers)
-	end
 	describe "games#index action" do
-		it "should successful show the page" do
+		before do
+			@user = FactoryGirl.create(:user)
+			auth_headers = @user.create_new_auth_token
+			request.headers.merge!(auth_headers)
+		end
+		it "should successfully respond" do
 			
 			get :index
 			expect(response).to have_http_status(:success)
 		end
 
-		# it "should return all the games in ascending order" do
-		# 	FactoryGirl.create_list(:game, 2)
-		# 	get :index
-		# 	json = JSON.parse(response.body)
+		it "should return all the games in ascending order" do
+			2.times do
+				FactoryGirl.create(:game, user: @user)
+			end
+			get :index
+			json = JSON.parse(response.body)
 
-		# 	expect(json[0]['id'] < json[1]['id']).to be true
-		# end
+			expect(json[0]['id'] < json[1]['id']).to be true
+		end
 	end
 
-	describe "game#create action" do
-		it "should successfully create and save a new game by the sign-in user" do
-			user = FactoryGirl.create(:user)
-			auth_headers = user.create_new_auth_token
+
+
+	describe "games#create action" do
+		before do
+			@user = FactoryGirl.create(:user)
+			auth_headers = @user.create_new_auth_token
 			request.headers.merge!(auth_headers)
 			post :create, params: { game: { name: 'First'}}
+		end
+		it "should successfully create and save a new game by the sign-in user" do
+			
 			game = Game.last
 			expect(game.name).to eq('First')
-			expect(game.user_id).to eq(user.id)
+			expect(game.user_id).to eq(@user.id)
+		end
+
+		it "should return 200 status-code" do
+			expect(response).to be_success
+		end
+
+		it "should return the created game in response body" do
+			json = JSON.parse(response.body)
+
+			expect(json['name']).to eq("First")
+		end
+	end
+
+	describe "game#create validation" do
+		it "should not let unauthorised user create game" do
+			post :create, params: { game: { name: 'Test'}}
+
+			json = JSON.parse(response.body)
+			expect(response).to have_http_status(:unauthorized)
+		end
+
+		it "should properly deal with validation" do
+			@user = FactoryGirl.create(:user)
+			auth_headers = @user.create_new_auth_token
+			request.headers.merge!(auth_headers)
+			post :create, params: { game: { name: ''}}
+
+			json = JSON.parse(response.body)
+			expect(response).to have_http_status(:unprocessable_entity)
+		end
+
+		it "should return error json on validation error" do
+			@user = FactoryGirl.create(:user)
+			auth_headers = @user.create_new_auth_token
+			request.headers.merge!(auth_headers)
+			post :create, params: { game: { name: ''}}
+
+			json = JSON.parse(response.body)
+			expect(json["errors"]["name"][0]).to eq("can't be blank")
 		end
 	end
 end

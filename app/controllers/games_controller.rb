@@ -7,17 +7,31 @@ class GamesController < ApplicationController
 		render json: games.as_json
 	end
 
+	def show
+		game = Game.find(params[:id])
+
+		render json: game.as_json
+	end
+
 	def create
 		game = current_user.games.create(game_params)
 
-		if user_signed_in?
-			if game.valid?
-				render json: game, status: :created
-			else
-				render json: render_errors(game), status: :unprocessable_entity
-			end
+		if game.valid?
+			render json: game, status: :created
 		else
-			render json: render_errors(game)
+			render json: render_errors(game.errors), status: :unprocessable_entity
+		end
+	end
+
+	def destroy
+		game = Game.find(params[:id])
+		return render_errors("Cannot find the game") if game.blank?
+
+		if game.user != current_user
+			return render json: render_errors("you can't"), status: :forbidden
+		else
+			game.destroy
+			head :no_content
 		end
 	end
 
@@ -27,7 +41,8 @@ class GamesController < ApplicationController
 		params.required(:game).permit(:name)
 	end
 
-	def render_errors(game)
-		{ errors: game.errors }
+	def render_errors(errors)
+		{ errors: errors }
 	end
+
 end

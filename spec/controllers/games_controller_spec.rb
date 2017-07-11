@@ -43,6 +43,26 @@ RSpec.describe GamesController, type: :controller do
 
 			expect(response).to have_http_status(:unauthorized)
 		end
+
+		it "should show http 404 if game is not found" do
+			@user = FactoryGirl.create(:user)
+			auth_headers = @user.create_new_auth_token
+			request.headers.merge!(auth_headers)
+			get :show, params: { id: "hello" }
+
+			expect(response).to have_http_status(:not_found)
+		end
+
+		it "should render error messages if game is not found" do
+			@user = FactoryGirl.create(:user)
+			auth_headers = @user.create_new_auth_token
+			request.headers.merge!(auth_headers)
+			get :show, params: { id: "hello" }
+
+			json = JSON.parse(response.body)
+			expect(json["errors"]).to eq("Cannot find the game")
+		end
+
 	end
 
 	describe "games#create action" do
@@ -101,7 +121,8 @@ RSpec.describe GamesController, type: :controller do
 
 	describe "game#destroy action" do
 		before do
-			@game = FactoryGirl.create(:game)
+			user1 = FactoryGirl.create(:user)
+			@game = FactoryGirl.create(:game, user: user1)
 		end
 		it "should not let unauthorised user destroy game" do
 			delete :destroy, params: { id: @game.id }
@@ -120,10 +141,35 @@ RSpec.describe GamesController, type: :controller do
 			expect(json["errors"]).to eq("you can't")
 		end
 
-		it "should render error if game is not found" do
+		it "should render http 404 error if the game cannot be found" do
 			user = FactoryGirl.create(:user)
 			auth_headers = user.create_new_auth_token
 			request.headers.merge!(auth_headers)
+
+			delete :destroy, params: { id: "hello"}
+			expect(response).to have_http_status(:not_found)
+		end
+
+		it "should render error message if the game cannot be found" do
+			user = FactoryGirl.create(:user)
+			auth_headers = user.create_new_auth_token
+			request.headers.merge!(auth_headers)
+
+			delete :destroy, params: { id: "hello"}
+
+			json = JSON.parse(response.body)
+			expect(json["errors"]).to eq("Cannot find the game")
+		end
+
+		it "should return no content when game is destroyed" do
+			user = FactoryGirl.create(:user)
+			game = FactoryGirl.create(:game, user: user)
+			
+			auth_headers = user.create_new_auth_token
+			request.headers.merge!(auth_headers)
+
+			delete :destroy, params: { id: game.id }
+			expect(response).to have_http_status(:no_content)
 		end
 	end
 end

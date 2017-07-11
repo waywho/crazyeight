@@ -8,8 +8,9 @@ class GamesController < ApplicationController
 	end
 
 	def show
-		game = Game.find(params[:id])
-
+		game = Game.find_by_id(params[:id])
+		return render json: render_errors("Cannot find the game"), status: :not_found if game.blank?
+		
 		render json: game.as_json
 	end
 
@@ -24,15 +25,12 @@ class GamesController < ApplicationController
 	end
 
 	def destroy
-		game = Game.find(params[:id])
-		return render_errors("Cannot find the game") if game.blank?
+		game = Game.find_by_id(params[:id])
+		return render json: render_errors("Cannot find the game"), status: :not_found if game.blank?
+		return render json: render_errors("you can't"), status: :forbidden if game.user != current_user
 
-		if game.user != current_user
-			return render json: render_errors("you can't"), status: :forbidden
-		else
-			game.destroy
-			head :no_content
-		end
+		game.destroy
+		head :no_content
 	end
 
 	private

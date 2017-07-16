@@ -1,8 +1,10 @@
-class CreateMatches < ActiveRecord::Migration[5.0]
+class CreatePlayers < ActiveRecord::Migration[5.0]
   def change
-    create_table :matches do |t|
+    create_table :players do |t|
       t.references :game, foreign_key: true
       t.references :user, foreign_key: true
+      t.integer :user_score
+      t.json :hand
 
       t.timestamps
     end

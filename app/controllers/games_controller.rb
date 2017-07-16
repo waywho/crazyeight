@@ -2,16 +2,25 @@ class GamesController < ApplicationController
 	before_action :authenticate_user!
 
 	def index
-		games = current_user.games
+		games = current_user.games.all
 
-		render json: games.as_json
+		render json: games.as_json(include: :game_players)
 	end
 
 	def show
 		game = Game.find_by_id(params[:id])
 		return render json: render_errors("Cannot find the game"), status: :not_found if game.blank?
-		
+
 		render json: game.as_json
+	end
+
+	def join
+		game = Game.find_by_id(params[:id])
+		player = User.find_by_id(game_params[:player_id])
+
+		game.players.create(user: player)
+
+		render json: game.as_json(include: :game_players)
 	end
 
 	def create
@@ -36,7 +45,7 @@ class GamesController < ApplicationController
 	private
 
 	def game_params
-		params.required(:game).permit(:name)
+		params.required(:game).permit(:name, :player_id)
 	end
 
 	def render_errors(errors)

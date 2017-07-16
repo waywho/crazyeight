@@ -6,6 +6,6 @@ class User < ActiveRecord::Base
   include DeviseTokenAuth::Concerns::User
 
   has_many :games
-  has_many :matches
-  has_many :challenges, through: :matches, source: :game
+  has_many :players
+  has_many :playing_games, through: :players, source: :game
 end

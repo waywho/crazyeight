@@ -23,6 +23,24 @@ RSpec.describe GamesController, type: :controller do
 		end
 	end
 
+	describe "game#join action" do
+		before do
+			@game = FactoryGirl.create(:game)
+			@user = FactoryGirl.create(:user)
+			auth_headers = @user.create_new_auth_token
+			request.headers.merge!(auth_headers)	
+		end
+
+		it "should receive and update the game with the users in response" do
+			user2 = FactoryGirl.create(:user)
+			post :join, params: { id: @game.id, game: {player_id: user2.id} }
+
+			json = JSON.parse(response.body)
+			expect(json["game_players"][0]["id"]).to eq(user2.id)
+
+		end
+	end
+
 	describe "games#show action" do
 		before do
 			@game = FactoryGirl.create(:game)

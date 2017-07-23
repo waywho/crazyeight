@@ -9,23 +9,21 @@ class Player < ApplicationRecord
   end
 
   def play_card(index, declare_suit=nil)
-  	card = self.hand.fetch(index)
-  	hand = self.hand.delete_at(index)
+  	# hand = self.hand
+    card = self.hand.fetch(index)
 
-  	if card.rank == 8
-  		add_to_play_pile(card)
-  		@declare_suit = declare_suit
-  		return true
-  	else
-	  	if self.game.match?(card)
-	  		card.display_card
-	  		self.hand.update_attributes(hand: hand)
-	  		add_to_play_pile(card)
-	  		return true
-	  	else
-	  		return false
-	  	end
-	 end
+  	if card["rank"] == 8
+      self.hand.delete_at(index)
+      card["suit"] = declare_suit
+  		self.add_to_play_pile(card)
+  		self.game.move_to_next_player
+  	elsif self.game.match?(card)
+      self.hand.delete_at(index)
+	  	self.add_to_play_pile(card)
+      self.game.move_to_next_player
+	  else
+	  		return false, "Sorry, card doesn't match, can't play this card"
+    end
   end
 
   def pick_from_deck
@@ -34,14 +32,11 @@ class Player < ApplicationRecord
   end
 
   def add_to_play_pile(card)
-  	new_pile = self.game.play_pile.unshift(card)
-  	self.game.update_attributes(play_pile: new_pile)
-  	return true
+  	self.game.play_pile.unshift(card)
   end
 
   def add_to_hand(card)
-  	new_hand = self.hand << card
-  	self.update_attributes(hand: new_hand)
+  	self.hand.push(card)
   	return true
   end
 end

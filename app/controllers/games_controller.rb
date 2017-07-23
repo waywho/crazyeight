@@ -2,7 +2,7 @@ class GamesController < ApplicationController
 	before_action :authenticate_user!
 
 	def index
-		games = current_user.games.all
+		games = current_user.games.order(:id)
 
 		render json: games.as_json(include: :game_players)
 	end

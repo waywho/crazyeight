@@ -18,7 +18,6 @@ RSpec.describe GamesController, type: :controller do
 			end
 			get :index
 			json = JSON.parse(response.body)
-
 			expect(json[0]['id'] < json[1]['id']).to be true
 		end
 	end

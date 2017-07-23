@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170716093829) do
+ActiveRecord::Schema.define(version: 20170718191907) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -19,9 +19,10 @@ ActiveRecord::Schema.define(version: 20170716093829) do
     t.integer  "user_id"
     t.string   "name"
     t.json     "play_deck"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
     t.json     "play_pile"
+    t.integer  "current_player"
     t.index ["user_id"], name: "index_games_on_user_id", using: :btree
   end
 

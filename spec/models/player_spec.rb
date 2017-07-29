@@ -41,6 +41,7 @@ RSpec.describe Player, type: :model do
 
 	it "should allow player to play any 8 card and declare a suit" do
 		@game.starter
-		card = 
+
+		
 	end
 end

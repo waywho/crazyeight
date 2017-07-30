@@ -1,5 +1,5 @@
 class GamesController < ApplicationController
-	before_action :authenticate_user!
+	# before_action :authenticate_user!
 
 	def index
 		games = current_user.games.order(:id)
